@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reels · clean + stylish ads</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    #reels {
+      width: 100%;
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      background: #000;
+    }
+    #reels::-webkit-scrollbar {
+      display: none;
+    }
+    .reel {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      overflow: hidden;
+      background: #000;
+    }
+    .reel video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .pause-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .pause-overlay span {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 50px;
+      text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+    }
+
+    /* =====================================================
+       💎 STYLISH AD SLOT – banner‑like, premium look
+       ===================================================== */
+    .ad-slot {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: radial-gradient(circle at 30% 20%, #1b1f2b, #0a0c10 80%);
+      overflow: hidden;
+    }
+
+    /* subtle animated glow */
+    .ad-slot::before {
+      content: "";
+      position: absolute;
+      top: -30%;
+      left: -30%;
+      width: 160%;
+      height: 160%;
+      background: radial-gradient(circle, rgba(80, 140, 255, 0.12), transparent 60%);
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes pulseGlow {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+      100% { transform: translate(6%, 4%) scale(1.1); opacity: 1; }
+    }
+
+    /* main card */
+    .ad-card {
+      position: relative;
+      max-width: 380px;
+      width: 100%;
+      background: rgba(22, 26, 34, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 36px;
+      padding: 38px 28px 34px;
+      border: 1px solid rgba(90, 140, 255, 0.25);
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+        0 0 60px rgba(60, 120, 255, 0.15);
+      text-align: center;
+      color: #fff;
+      transition: transform 0.3s ease;
+    }
+
+    /* top shine line */
+    .ad-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 18%;
+      width: 64%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #5a9eff, #a0c8ff, #5a9eff, transparent);
+      border-radius: 2px;
+      opacity: 0.8;
+    }
+
+    /* small badge */
+    .ad-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(90, 140, 255, 0.16);
+      border: 1px solid rgba(90, 140, 255, 0.4);
+      color: #a8ccff;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 40px;
+      margin-bottom: 22px;
+    }
+    .ad-badge svg {
+      width: 14px;
+      height: 14px;
+      fill: #7bb2ff;
+    }
+
+    /* big headline */
+    .ad-title {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffffff 0%, #b8d4ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 20px rgba(80, 140, 255, 0.3);
+    }
+
+    /* sub line */
+    .ad-sub {
+      font-size: 17px;
+      color: #9aa9c0;
+      margin-bottom: 26px;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+      line-height: 1.5;
+    }
+
+    /* feature row */
+    .ad-features {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .ad-feature {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #c8d6ee;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 14px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .ad-feature svg {
+      width: 16px;
+      height: 16px;
+      fill: #6ea6ff;
+      flex-shrink: 0;
+    }
+
+    /* price highlight */
+    .ad-price {
+      font-size: 15px;
+      color: #8fa3c4;
+      margin-bottom: 22px;
+    }
+    .ad-price strong {
+      color: #fff;
+      font-weight: 700;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+    }
+    .ad-price span {
+      color: #7bb2ff;
+      font-weight: 600;
+    }
+
+    /* CTA button */
+    .ad-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: linear-gradient(135deg, #2e7dff, #1a5cd6);
+      color: #fff;
+      font-weight: 700;
+      padding: 16px 24px;
+      border-radius: 60px;
+      font-size: 18px;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      border: none;
+      cursor: pointer;
+      box-shadow:
+        0 10px 30px rgba(30, 100, 255, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .ad-cta::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.5s ease;
+    }
+    .ad-cta:hover::before {
+      left: 100%;
+    }
+    .ad-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(30, 100, 255, 0.55);
+      background: linear-gradient(135deg, #3a8aff, #2266e0);
+    }
+    .ad-cta svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+      flex-shrink: 0;
+    }
+
+    /* footer note */
+    .ad-footnote {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #5a6b85;
+      letter-spacing: 0.3px;
+    }
+    .ad-footnote a {
+      color: #7bb2ff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .ad-footnote a:hover {
+      text-decoration: underline;
+    }
+
+    /* responsive tweak */
+    @media (min-width: 700px) {
+      body {
+        background: #111;
+      }
+      #reels {
+        width: 430px;
+        margin: auto;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+      }
+      .ad-card {
+        padding: 44px 34px 38px;
+      }
+      .ad-title {
+        font-size: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="reels"></div>
+
+  <script>
+    (function() {
+      // =====================================================
+      // 🎬 MASTER VIDEO LIST
+      // =====================================================
+      const rawVideos = [
+        "https://files.catbox.moe/xs6d6c.mp4",
+        "https://files.catbox.moe/rdsqf2.mp4",
+        "https://files.catbox.moe/dcvvtf.mp4",
+        "https://files.catbox.moe/tngy2p.mp4",
+        "https://files.catbox.moe/ysb8mk.mp4",
+        "https://files.catbox.moe/otdgvc.mp4",
+        "https://files.catbox.moe/a0p7xp.mp4",
+        "https://files.catbox.moe/lwrpei.mp4",
+        "https://files.catbox.moe/pxo5ie.mp4",
+        "https://files.catbox.moe/2vz3fn.mp4",
+        "https://files.catbox.moe/btecm2.mp4",
+        "https://files.catbox.moe/aq79m7.mp4",
+        "https://www.image2url.com/r2/default/videos/1785911384652-b92bceae-e40d-4569-a59c-9d1140451be7.mp4",
+        "https://www.image2url.com/r2/default/videos/1785911459858-2a98081f-84c8-4912-a269-80bbe2628d9b.mp4",
+        "https://www.image2url.com/r2/default/videos/1785911692588-48a29e71-e3f4-486c-a696-e82aad9ffc49.mp4",
+        "https://www.image2url.com/r2/default/videos/1785911770636-5a7268dd-956e-4290-abe0-c4f4e940e0d9.mp4",
+        "https://www.image2url.com/r2/default/videos/1785911809487-180ad2c6-9734-47dc-8a73-26607a4a1bcc.mp4",
+        "https://www.image2url.com/r2/default/videos/1787125721255-d1e46616-666c-4789-bcaf-560dc18d9bf4.mp4",
+        "https://files.catbox.moe/tnw1wo.mp4",
+        "https://files.catbox.moe/9iuc1k.mp4",
+        "https://files.catbox.moe/sg0lg6.mp4",
+        "https://files.catbox.moe/hvxnjj.mp4",
+        "https://files.catbox.moe/uwkxh5.mp4",
+        "https://files.catbox.moe/4oqaug.mp4",
+        "https://files.catbox.moe/bc8to9.mp4",
+        "https://files.catbox.moe/h57ck8.mp4",
+        "https://files.catbox.moe/9dv6sl.mp4",
+        "https://files.catbox.moe/xhdve6.mp4",
+        "https://files.catbox.moe/lxbf2f.mp4",
+        "https://files.catbox.moe/pfo8et.mp4",
+        "https://files.catbox.moe/sh51o1.mp4",
+        "https://files.catbox.moe/lkb6d7.mp4",
+        "https://files.catbox.moe/rmyxlm.mp4",
+        "https://files.catbox.moe/yoemf3.mp4",
+        "https://files.catbox.moe/aywzts.mp4",
+        "https://files.catbox.moe/pidglv.mp4",
+        "https://files.catbox.moe/et2h5l.mp4",
+        "https://files.catbox.moe/f6i3nk.mp4",
+        "https://files.catbox.moe/1zwm0w.mp4",
+        "https://files.catbox.moe/3r21w5.mp4",
+        "https://files.catbox.moe/agkydl.mp4",
+        "https://files.catbox.moe/lcve1z.mp4",
+        "https://files.catbox.moe/mpbzib.mp4",
+        "https://files.catbox.moe/fkhtzv.mp4",
+        "https://files.catbox.moe/21csab.mp4",
+        "https://files.catbox.moe/uqbga1.mp4",
+        "https://files.catbox.moe/47i3wr.mp4",
+        "https://files.catbox.moe/a2yqt6.mp4",
+        "https://files.catbox.moe/w5hxky.mp4",
+        "https://files.catbox.moe/t6oxpu.mp4",
+        "https://files.catbox.moe/ocdyds.mp4",
+        "https://files.catbox.moe/8hciu2.mp4",
+        "https://files.catbox.moe/lvcm5b.mp4",
+        "https://files.catbox.moe/0uilu8.mp4",
+        "https://files.catbox.moe/r19vtw.mp4",
+        "https://files.catbox.moe/wjpskm.mp4",
+        "https://files.catbox.moe/7x66w5.mp4",
+        "https://files.catbox.moe/v8m467.mp4",
+        "https://files.catbox.moe/b4zwwu.mp4",
+        "https://files.catbox.moe/q4suz1.mp4"
+      ];
+
+      const uniqueVideos = [...new Set(rawVideos)];
+
+      function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      const shuffledVideos = shuffleArray([...uniqueVideos]);
+
+      const container = document.getElementById('reels');
+      const reelObjects = [];
+      let currentReelIndex = 0;
+
+      const VIDEOS_BEFORE_AD = 10;
+
+      // ---------- create video reel ----------
+      function createVideoReel(url, index) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        const preload = index < 5 ? 'auto' : 'metadata';
+        reel.innerHTML = `
+          <video src="${url}" playsinline loop preload="${preload}"></video>
+          <div class="pause-overlay"><span>⏸️</span></div>
+        `;
+        const video = reel.querySelector('video');
+        const pauseOverlay = reel.querySelector('.pause-overlay');
+
+        const togglePlay = (e) => {
+          e.stopPropagation();
+          if (!video.paused) {
+            video.muted = true;
+            video.pause();
+          } else {
+            video.muted = false;
+            video.play().catch(() => {});
+          }
+        };
+        reel.addEventListener('click', togglePlay);
+        video.addEventListener('click', (e) => {
+          e.stopPropagation();
+          togglePlay(e);
+        });
+        video.addEventListener('play', () => {
+          pauseOverlay.style.display = 'none';
+        });
+        video.addEventListener('pause', () => {
+          pauseOverlay.style.display = 'flex';
+          setTimeout(() => {
+            if (video.paused) pauseOverlay.style.display = 'none';
+          }, 800);
+        });
+
+        return { reel, video, pauseOverlay, type: 'video' };
+      }
+
+      // ---------- create STYLISH ad reel ----------
+      function createAdReel() {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        reel.innerHTML = `
+          <div class="ad-slot">
+            <div class="ad-card">
+              <div class="ad-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                Sponsored
+              </div>
+              <div class="ad-title">Your Ad Here</div>
+              <div class="ad-sub">Reach thousands of engaged viewers instantly</div>
+              <div class="ad-features">
+                <div class="ad-feature">
+                  <svg viewBox="0 0 24 24"><path d="M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z"/><path d="M12 6V12L16 14"/></svg>
+                  1000+ sites
+                </div>
+                <div class="ad-feature">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"/></svg>
+                  Instant setup
+                </div>
+              </div>
+              <div class="ad-price">
+                only <strong>₹1000</strong> <span>/ month</span>
+              </div>
+              <a href="#" class="ad-cta" onclick="event.preventDefault(); alert('Replace this with your ad link');">
+                <svg viewBox="0 0 24 24"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                Place your ad
+              </a>
+              <div class="ad-footnote">
+                approx <strong>1000 sites</strong> · premium placement
+              </div>
+            </div>
+          </div>
+        `;
+        return { reel, video: null, pauseOverlay: null, type: 'ad' };
+      }
+
+      // ---------- build feed ----------
+      let videoCounter = 0;
+
+      for (let i = 0; i < shuffledVideos.length; i++) {
+        const videoObj = createVideoReel(shuffledVideos[i], videoCounter);
+        container.appendChild(videoObj.reel);
+        reelObjects.push(videoObj);
+        videoCounter++;
+
+        if (videoCounter % VIDEOS_BEFORE_AD === 0 && i !== shuffledVideos.length - 1) {
+          const adObj = createAdReel();
+          container.appendChild(adObj.reel);
+          reelObjects.push(adObj);
+        }
+      }
+
+      // ---------- observer ----------
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.7) return;
+          const idx = reelObjects.findIndex(obj => obj.reel === entry.target);
+          if (idx === -1) return;
+          currentReelIndex = idx;
+
+          reelObjects.forEach((obj, i) => {
+            if (i !== idx && obj.type === 'video' && obj.video) {
+              obj.video.pause();
+              obj.video.muted = true;
+              obj.video.currentTime = 0;
+            }
+          });
+
+          const active = reelObjects[idx];
+          if (active.type === 'video' && active.video) {
+            active.video.muted = false;
+            active.video.play().catch(() => {});
+          }
+        });
+      }, { threshold: 0.7 });
+
+      reelObjects.forEach(obj => observer.observe(obj.reel));
+
+      // ---------- navigation ----------
+      function goTo(index) {
+        if (index < 0) index = 0;
+        if (index >= reelObjects.length) index = reelObjects.length - 1;
+        reelObjects[index].reel.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); goTo(currentReelIndex + 1); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); goTo(currentReelIndex - 1); }
+      });
+
+      let startY = 0;
+      container.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      container.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        const distance = startY - endY;
+        if (Math.abs(distance) < 60) return;
+        if (distance > 0) goTo(currentReelIndex + 1);
+        else goTo(currentReelIndex - 1);
+      }, { passive: true });
+
+      // ---------- autoplay first video ----------
+      if (reelObjects[0] && reelObjects[0].type === 'video' && reelObjects[0].video) {
+        reelObjects[0].video.muted = false;
+        reelObjects[0].video.play().catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>
